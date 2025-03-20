@@ -1,0 +1,33 @@
+{
+  "name": "image-to-form",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/camziny/image-to-form.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/camziny/image-to-form/issues"
+  },
+  "homepage": "https://github.com/camziny/image-to-form#readme",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.2",
+    "openai": "^4.89.0",
+    "tesseract.js": "^6.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
