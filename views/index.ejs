@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image to Event Form</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f8fa;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      margin-top: 0;
+      text-align: center;
+    }
+    .upload-section {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .form-section {
+      margin-bottom: 2rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    input[type="text"], input[type="date"], input[type="time"] {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-input-label {
+      display: inline-block;
+      background-color: #3498db;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .file-input-label:hover {
+      background-color: #2980b9;
+    }
+    .file-name {
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+    button {
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #27ae60;
+    }
+    .results {
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid #eee;
+    }
+    .result-box {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .result-box h3 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Image to Event Form</h1>
+    
+    <div class="upload-section">
+      <form action="/upload" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="image" class="file-input-label">Choose Image</label>
+          <input type="file" id="image" name="image" accept="image/*" onchange="updateFileName(this)">
+          <div class="file-name" id="file-name"></div>
+        </div>
+        <button type="submit">Process Image</button>
+      </form>
+    </div>
+
+    <div class="form-section">
+      <h2>Event Details</h2>
+      <form id="eventForm">
+        <div class="form-group">
+          <label for="title">Event Title</label>
+          <input type="text" id="title" name="title" value="<%= eventData ? eventData.title || '' : '' %>">
+        </div>
+        <div class="form-group">
+          <label for="location">Location</label>
+          <input type="text" id="location" name="location" value="<%= eventData ? eventData.location || '' : '' %>">
+        </div>
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input type="text" id="date" name="date" value="<%= eventData ? eventData.date || '' : '' %>">
+        </div>
+        <div class="form-group">
+          <label for="time">Time</label>
+          <input type="text" id="time" name="time" value="<%= eventData ? eventData.time || '' : '' %>">
+        </div>
+        <button type="submit">Save Event</button>
+      </form>
+    </div>
+
+    <% if (eventData) { %>
+      <div class="results">
+        <div class="result-box">
+          <h3>Extracted Text from Image</h3>
+          <pre><%= imageText %></pre>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    function updateFileName(input) {
+      const fileNameDisplay = document.getElementById('file-name');
+      if (input.files.length > 0) {
+        fileNameDisplay.textContent = input.files[0].name;
+      } else {
+        fileNameDisplay.textContent = '';
+      }
+    }
+
+    document.getElementById('eventForm')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      alert('Event saved successfully! (This is just a demo)');
+    });
+  </script>
+</body>
+</html> 
