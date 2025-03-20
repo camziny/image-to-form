@@ -5,6 +5,7 @@ const path = require('path');
 // Import routes
 const indexRoutes = require('./routes/index');
 const uploadRoutes = require('./routes/upload');
+const apiRoutes = require('./routes/api');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,6 +26,7 @@ if (!fs.existsSync(uploadsDir)) {
 // Routes
 app.use('/', indexRoutes);
 app.use('/upload', uploadRoutes);
+app.use('/api', apiRoutes);
 
 // Start server
 app.listen(port, () => {

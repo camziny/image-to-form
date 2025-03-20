@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Image to Event Form</title>
   <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/loader.css">
+  <link rel="stylesheet" href="/styles/forms.css">
+  <link rel="stylesheet" href="/styles/thumbnails.css">
+  <link rel="stylesheet" href="/styles/modal.css">
+  <link rel="stylesheet" href="/styles/event-preview.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,6 +18,22 @@
   <div class="loader-container" id="loader">
     <span class="loader"></span>
     <p class="loader-text">Processing image and extracting event details...</p>
+  </div>
+
+  <div class="modal-overlay" id="thumbnailModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Select a Thumbnail</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="thumbnail-grid" id="thumbnailGrid">
+        <!-- Thumbnails will be loaded here -->
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+        <button class="modal-confirm" id="confirmThumbnail" disabled>Select Thumbnail</button>
+      </div>
+    </div>
   </div>
 
   <div class="container">
@@ -31,7 +52,17 @@
 
     <div class="form-section">
       <h2>Event Details</h2>
+      
+      <div class="selected-thumbnail" id="selectedThumbnail">
+        <img src="" alt="Selected thumbnail" id="selectedThumbnailImage" class="selected-thumbnail-image">
+        <p class="selected-thumbnail-info" id="thumbnailCredit"></p>
+      </div>
+
       <form id="eventForm">
+        <% if (eventData && eventData.title) { %>
+          <button type="button" class="add-thumbnail-btn" id="addThumbnailBtn">Add a Thumbnail</button>
+        <% } %>
+
         <div class="form-group">
           <label for="title">Event Title</label>
           <input type="text" id="title" name="title" value="<%= eventData ? eventData.title || '' : '' %>">
@@ -48,11 +79,16 @@
           <label for="time">Time</label>
           <input type="text" id="time" name="time" value="<%= eventData ? eventData.time || '' : '' %>">
         </div>
+        
+        <input type="hidden" id="thumbnailUrl" name="thumbnailUrl" value="">
+        <input type="hidden" id="thumbnailCreditName" name="thumbnailCreditName" value="">
+        <input type="hidden" id="thumbnailCreditLink" name="thumbnailCreditLink" value="">
+        
         <button type="submit">Save Event</button>
       </form>
     </div>
 
-    <% if (eventData) { %>
+    <% if (eventData && imageText) { %>
       <div class="results">
         <div class="result-box">
           <h3>Extracted Text from Image</h3>
@@ -60,6 +96,59 @@
         </div>
       </div>
     <% } %>
+  </div>
+
+  <!-- Event Preview Modal -->
+  <div class="event-preview-modal" id="eventPreviewModal">
+    <div class="event-preview">
+      <div class="event-preview-header">
+        <h2>Event Preview</h2>
+        <button class="event-preview-close" onclick="closeEventPreview()">&times;</button>
+      </div>
+      
+      <div class="event-image-container">
+        <img src="" alt="Event" id="previewEventImage" class="event-preview-image">
+        <div class="event-photo-credit" id="previewPhotoCredit"></div>
+      </div>
+      
+      <div class="event-preview-body">
+        <div class="event-badge">Event</div>
+        <h1 class="event-title" id="previewTitle"></h1>
+        
+        <div class="event-meta">
+          <div class="event-detail">
+            <div class="event-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path fill-rule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="event-text" id="previewLocation"></div>
+          </div>
+          
+          <div class="event-detail">
+            <div class="event-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="event-text" id="previewDate"></div>
+          </div>
+          
+          <div class="event-detail">
+            <div class="event-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <div class="event-text" id="previewTime"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="event-preview-footer">
+        <button class="submit-event-btn" onclick="closeEventPreview()">Submit Event</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -72,15 +161,333 @@
       }
     }
 
-    document.getElementById('eventForm')?.addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('Event saved successfully! (This is just a demo)');
-    });
-    
     document.getElementById('uploadForm').addEventListener('submit', function() {
-      const loader = document.getElementById('loader');
-      loader.classList.add('loader-active');
+      document.getElementById('loader').classList.add('loader-active');
     });
+
+    console.log('Form element:', document.getElementById('eventForm')); // Check if form exists
+
+    const form = document.getElementById('eventForm');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        console.log('Form submitted');
+        e.preventDefault();
+        
+        // Get form values
+        const title = document.getElementById('title').value || 'Untitled Event';
+        const location = document.getElementById('location').value || 'Location TBD';
+        const date = document.getElementById('date').value || 'Date TBD';
+        const time = document.getElementById('time').value || 'Time TBD';
+        const thumbnailUrl = document.getElementById('thumbnailUrl').value;
+        const thumbnailCreditName = document.getElementById('thumbnailCreditName')?.value;
+        const thumbnailCreditLink = document.getElementById('thumbnailCreditLink')?.value;
+        
+        // Populate the preview
+        document.getElementById('previewTitle').textContent = title;
+        document.getElementById('previewLocation').textContent = location;
+        document.getElementById('previewDate').textContent = date;
+        document.getElementById('previewTime').textContent = time;
+        
+        // Handle the image
+        if (thumbnailUrl) {
+          document.getElementById('previewEventImage').src = thumbnailUrl;
+          document.getElementById('previewPhotoCredit').innerHTML = `
+            Photo by <a href="${thumbnailCreditLink}" target="_blank">${thumbnailCreditName}</a> on Unsplash
+          `;
+        } else {
+          // Use a default image if no thumbnail is selected
+          document.getElementById('previewEventImage').src = 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80';
+          document.getElementById('previewPhotoCredit').innerHTML = 'Default event image';
+        }
+        
+        // Apply inline styles
+        styleEventPreview();
+        
+        // Show the preview modal
+        const modal = document.getElementById('eventPreviewModal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+      });
+      console.log('Added event listener to form');
+    } else {
+      console.log('Form not found!');
+    }
+
+    function styleEventPreview() {
+      // Style the modal container
+      const modal = document.getElementById('eventPreviewModal');
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.width = '100%';
+      modal.style.height = '100%';
+      modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+      modal.style.justifyContent = 'center';
+      modal.style.alignItems = 'center';
+      modal.style.zIndex = '1000';
+      
+      // Style the preview container
+      const preview = document.querySelector('.event-preview');
+      preview.style.backgroundColor = 'white';
+      preview.style.borderRadius = '12px';
+      preview.style.width = '95%';
+      preview.style.maxWidth = '700px';
+      preview.style.maxHeight = '90vh';
+      preview.style.overflowY = 'auto';
+      preview.style.boxShadow = '0 10px 30px rgba(98, 0, 238, 0.2)';
+      
+      // Style header
+      const header = document.querySelector('.event-preview-header');
+      header.style.display = 'flex';
+      header.style.justifyContent = 'space-between';
+      header.style.alignItems = 'center';
+      header.style.padding = '20px 25px';
+      header.style.borderBottom = '1px solid #f0e6ff';
+      header.style.backgroundColor = 'white';
+      
+      // Style header title
+      const headerTitle = header.querySelector('h2');
+      if (headerTitle) {
+        headerTitle.style.margin = '0';
+        headerTitle.style.fontSize = '22px';
+        headerTitle.style.fontWeight = '600';
+        headerTitle.style.color = '#6200EE';
+      }
+      
+      // Style close button
+      const closeButton = document.querySelector('.event-preview-close');
+      if (closeButton) {
+        closeButton.style.background = 'none';
+        closeButton.style.border = 'none';
+        closeButton.style.fontSize = '28px';
+        closeButton.style.cursor = 'pointer';
+        closeButton.style.color = '#666';
+      }
+      
+      // Style image container
+      const imageContainer = document.querySelector('.event-image-container');
+      imageContainer.style.width = '100%';
+      imageContainer.style.height = '200px';
+      imageContainer.style.position = 'relative';
+      imageContainer.style.overflow = 'hidden';
+      
+      // Style image
+      const image = document.getElementById('previewEventImage');
+      image.style.width = '100%';
+      image.style.height = '100%';
+      image.style.objectFit = 'cover';
+      
+      // Style photo credit
+      const photoCredit = document.getElementById('previewPhotoCredit');
+      photoCredit.style.position = 'absolute';
+      photoCredit.style.bottom = '10px';
+      photoCredit.style.right = '10px';
+      photoCredit.style.backgroundColor = 'rgba(98, 0, 238, 0.7)';
+      photoCredit.style.color = 'white';
+      photoCredit.style.padding = '5px 8px';
+      photoCredit.style.borderRadius = '4px';
+      photoCredit.style.fontSize = '12px';
+      
+      // Style body
+      const body = document.querySelector('.event-preview-body');
+      body.style.padding = '25px';
+      body.style.backgroundColor = 'white';
+      
+      // Style event badge
+      const badge = document.querySelector('.event-badge');
+      badge.style.display = 'inline-block';
+      badge.style.backgroundColor = '#BB86FC';
+      badge.style.color = 'white';
+      badge.style.padding = '4px 12px';
+      badge.style.borderRadius = '20px';
+      badge.style.fontSize = '14px';
+      badge.style.fontWeight = '600';
+      badge.style.marginBottom = '15px';
+      
+      // Style title
+      const title = document.getElementById('previewTitle');
+      title.style.margin = '0 0 20px 0';
+      title.style.fontSize = '28px';
+      title.style.fontWeight = '700';
+      title.style.color = '#222';
+      title.style.lineHeight = '1.2';
+      
+      // Style event meta
+      const meta = document.querySelector('.event-meta');
+      meta.style.display = 'flex';
+      meta.style.flexDirection = 'column';
+      meta.style.gap = '15px';
+      meta.style.marginBottom = '25px';
+      
+      // Style event details
+      const details = document.querySelectorAll('.event-detail');
+      details.forEach(detail => {
+        detail.style.display = 'flex';
+        detail.style.alignItems = 'center';
+        detail.style.gap = '12px';
+      });
+      
+      // Style icons
+      const icons = document.querySelectorAll('.event-icon');
+      icons.forEach(icon => {
+        icon.style.width = '24px';
+        icon.style.height = '24px';
+        icon.style.display = 'flex';
+        icon.style.alignItems = 'center';
+        icon.style.justifyContent = 'center';
+        icon.style.color = '#6200EE';
+      });
+      
+      // Style text
+      const texts = document.querySelectorAll('.event-text');
+      texts.forEach(text => {
+        text.style.fontSize = '16px';
+        text.style.color = '#333';
+        text.style.fontWeight = '500';
+      });
+      
+      // Style footer
+      const footer = document.querySelector('.event-preview-footer');
+      footer.style.padding = '20px 25px';
+      footer.style.borderTop = '1px solid #f0e6ff';
+      footer.style.textAlign = 'right';
+      footer.style.backgroundColor = 'white';
+      
+      // Style submit button
+      const submitBtn = document.querySelector('.submit-event-btn');
+      submitBtn.style.backgroundColor = '#6200EE';
+      submitBtn.style.color = 'white';
+      submitBtn.style.border = 'none';
+      submitBtn.style.padding = '12px 25px';
+      submitBtn.style.borderRadius = '6px';
+      submitBtn.style.fontSize = '16px';
+      submitBtn.style.fontWeight = '600';
+      submitBtn.style.cursor = 'pointer';
+    }
+
+    // Close event preview modal
+    function closeEventPreview() {
+      document.getElementById('eventPreviewModal').style.display = 'none';
+      document.body.style.overflow = ''; // Restore scrolling
+      alert('Event would be submitted in a real application! (This is just a demo)');
+    }
+    
+    // Initialize the modal as hidden when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('eventPreviewModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    });
+
+    const addThumbnailBtn = document.getElementById('addThumbnailBtn');
+    if (addThumbnailBtn) {
+      addThumbnailBtn.addEventListener('click', function() {
+        const title = document.getElementById('title').value;
+        if (!title) {
+          alert('Please make sure the event title is filled out');
+          return;
+        }
+        
+        document.getElementById('loader').classList.add('loader-active');
+        
+        fetch(`/api/images?query=${encodeURIComponent(title)}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to fetch images');
+            }
+            return response.json();
+          })
+          .then(images => {
+            document.getElementById('loader').classList.remove('loader-active');
+            
+            loadThumbnails(images);
+            
+            document.getElementById('thumbnailModal').style.display = 'flex';
+          })
+          .catch(error => {
+            console.error('Error fetching images:', error);
+            document.getElementById('loader').classList.remove('loader-active');
+            alert('Failed to fetch image thumbnails. Please try again.');
+          });
+      });
+    }
+
+    function closeModal() {
+      document.getElementById('thumbnailModal').style.display = 'none';
+    }
+
+    function loadThumbnails(images) {
+      const grid = document.getElementById('thumbnailGrid');
+      grid.innerHTML = '';
+      
+      if (images.length === 0) {
+        grid.innerHTML = '<p>No images found for this event title. Try a different title.</p>';
+        return;
+      }
+      
+      const confirmBtn = document.getElementById('confirmThumbnail');
+      confirmBtn.disabled = true;
+      
+      images.forEach(image => {
+        const div = document.createElement('div');
+        div.className = 'thumbnail-option';
+        div.innerHTML = `
+          <img src="${image.thumb}" alt="Event thumbnail option">
+          <div class="photo-credit">
+            <a href="${image.credit.link}" target="_blank">© ${image.credit.name}</a>
+          </div>
+        `;
+        
+        div.dataset.url = image.url;
+        div.dataset.creditName = image.credit.name;
+        div.dataset.creditLink = image.credit.link;
+        
+        div.addEventListener('click', function() {
+          document.querySelectorAll('.thumbnail-option').forEach(el => {
+            el.classList.remove('selected');
+          });
+          
+          this.classList.add('selected');
+          
+          confirmBtn.disabled = false;
+        });
+        
+        grid.appendChild(div);
+      });
+      
+      confirmBtn.onclick = function() {
+        const selectedThumb = document.querySelector('.thumbnail-option.selected');
+        if (selectedThumb) {
+          const url = selectedThumb.dataset.url;
+          const creditName = selectedThumb.dataset.creditName;
+          const creditLink = selectedThumb.dataset.creditLink;
+          
+          document.getElementById('thumbnailUrl').value = url;
+          document.getElementById('thumbnailCreditName').value = creditName;
+          document.getElementById('thumbnailCreditLink').value = creditLink;
+          
+          document.getElementById('selectedThumbnailImage').src = url;
+          document.getElementById('thumbnailCredit').innerHTML = `
+            Photo by <a href="${creditLink}" target="_blank">${creditName}</a> on Unsplash
+          `;
+          document.getElementById('selectedThumbnail').style.display = 'block';
+          
+          closeModal();
+        }
+      };
+    }
+
+    function testModal() {
+      const modal = document.getElementById('eventPreviewModal');
+      if (modal) {
+        console.log('Found modal element');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      } else {
+        console.log('Modal element not found');
+      }
+    }
   </script>
 </body>
 </html> 

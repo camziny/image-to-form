@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const Tesseract = require('tesseract.js');
 const { extractEventDetails } = require('../utils/openaiHelper');
+const { fetchImageSuggestions } = require('../utils/imageHelper');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -43,7 +44,13 @@ router.post('/', upload.single('image'), async (req, res) => {
     // Use OpenAI to extract event details
     const eventData = await extractEventDetails(imageText);
     
-    res.render('index', { eventData, imageText });
+    // Fetch image suggestions based on the event title
+    let imageSuggestions = [];
+    if (eventData && eventData.title) {
+      imageSuggestions = await fetchImageSuggestions(eventData.title);
+    }
+    
+    res.render('index', { eventData, imageText, imageSuggestions });
   } catch (error) {
     console.error('Error processing image:', error);
     res.status(500).send('Error processing image');
